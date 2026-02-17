@@ -179,22 +179,49 @@ https://developer.apple.com/programs/
 2. Create a **Developer ID Application** certificate
 3. Export it as a `.p12` file with a password
 
-### 3. Required env vars
+### 3. Base64-encode the certificate
+
+CI needs the `.p12` as a base64 string:
+
+```bash
+uv run python -c "import base64, pathlib; print(base64.b64encode(pathlib.Path('cert.p12').read_bytes()).decode())"
+```
+
+Copy the output into your `APPLE_CERTIFICATE` secret.
+
+### 4. Find your signing identity
+
+```bash
+security find-identity -v -p codesigning
+```
+
+Look for `Developer ID Application: Your Name (TEAMID)`.
+
+### 5. Generate an app-specific password
+
+Go to https://appleid.apple.com/account/manage → Sign-In and Security →
+App-Specific Passwords → Generate.
+
+### 6. Required env vars
 
 Set these in CI:
 
 ```
-APPLE_CERTIFICATE=<base64-encoded .p12 file>
+APPLE_CERTIFICATE=<base64 from step 3>
 APPLE_CERTIFICATE_PASSWORD=<.p12 password>
-APPLE_SIGNING_IDENTITY=<certificate name, e.g. "Developer ID Application: Your Name (TEAMID)">
+APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)"
 APPLE_ID=<your Apple ID email>
-APPLE_PASSWORD=<app-specific password>
-APPLE_TEAM_ID=<your team ID>
+APPLE_PASSWORD=<app-specific password from step 5>
+APPLE_TEAM_ID=<your 10-char team ID>
 ```
 
-Generate an app-specific password at https://appleid.apple.com/account/manage
+Find your team ID:
 
-### 4. How it works
+```bash
+uv run python -c "import subprocess, re; o=subprocess.check_output(['security','find-identity','-v','-p','codesigning']).decode(); print(set(re.findall(r'\(([A-Z0-9]{10})\)', o)))"
+```
+
+### 7. How it works
 
 Tauri automatically:
 
@@ -205,7 +232,7 @@ Tauri automatically:
 No custom scripts or whitelists needed. All binaries must be signed
 for notarization to pass.
 
-### 5. Verification
+### 8. Verification
 
 ```bash
 codesign --verify --deep --strict /path/to/Vibe.app
