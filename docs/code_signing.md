@@ -1,12 +1,14 @@
-# SSL.com eSigner Cloud Code Signing (CI friendly)
+# Code Signing
 
-This guide explains how to buy and use an SSL.com Code Signing certificate
-with eSigner cloud signing (no USB token, no YubiKey) and how to sign binaries
-automatically in CI.
+This guide covers code signing for both Windows and macOS.
 
 ---
 
-## 1. What to buy (important)
+## Windows (SSL.com eSigner)
+
+Cloud-based signing via SSL.com eSigner + Jsign. No USB token or YubiKey needed.
+
+### 1. What to buy
 
 On SSL.com, buy a **Code Signing Certificate**.
 
@@ -25,9 +27,7 @@ If this box is NOT checked:
 - you will NOT get a Credential ID
 - the certificate cannot be fixed after issuance
 
----
-
-## 2. Validation (what to expect)
+### 2. Validation
 
 After purchase, SSL.com will perform standard validation
 (identity, email, phone – depends on certificate type).
@@ -35,9 +35,7 @@ After purchase, SSL.com will perform standard validation
 Once validation is complete and the certificate is issued,
 you can continue.
 
----
-
-## 3. Where to find the eSigner credentials
+### 3. Where to find the eSigner credentials
 
 After issuance:
 
@@ -58,9 +56,7 @@ Example:
 SSL_COM_CREDENTIAL_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
----
-
-## 4. Enable TOTP (one-time setup)
+### 4. Enable TOTP (one-time setup)
 
 In the same Order page, find the eSigner PIN / QR code section.
 
@@ -81,9 +77,7 @@ UFZ3SGLG1KVDIDE3KWJEKVAGG24S5PWDQMQTPBAAJDSC566KKFGB
 
 This value is your TOTP secret.
 
----
-
-## 5. Verify TOTP works (recommended)
+### 5. Verify TOTP works (recommended)
 
 Generate a code and compare it against Google Authenticator at the same moment.
 
@@ -102,9 +96,7 @@ uv run --with pyotp python -c "import pyotp; print(pyotp.TOTP('<BASE32_SECRET>')
 
 If the 6-digit code matches Google Authenticator, your TOTP setup is correct.
 
----
-
-## 6. How signing works with Tauri
+### 6. How signing works with Tauri
 
 Tauri calls a custom sign command for every binary it wants to sign
 (main exe, sidecars, NSIS plugins, installer, etc.).
@@ -123,7 +115,10 @@ What gets skipped:
 - Sidecars (ffmpeg, sona, sona-diarize)
 - NSIS plugins and resource DLLs
 
-### Tauri config
+By default the script runs in **dry run** mode. Set `SIGN_ENABLED=true`
+to actually sign.
+
+#### Tauri config
 
 In `desktop/src-tauri/tauri.windows.conf.json`:
 
@@ -137,29 +132,30 @@ In `desktop/src-tauri/tauri.windows.conf.json`:
 Tauri passes `%1` as the file path. The script checks the filename
 against the whitelist and either signs or skips.
 
-### Prerequisites
+#### Prerequisites
 
 ```
 choco install jsign
 choco install temurin
 ```
 
-### Required env vars
+#### Required env vars
 
 ```
+SIGN_ENABLED=true
 SSL_COM_CREDENTIAL_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 SSL_COM_USERNAME=your@email.com
 SSL_COM_PASSWORD=your_ssl_com_password
 SSL_COM_TOTP_SECRET=BASE32_SECRET
 ```
 
-### Manual signing
+#### Manual signing
 
 ```
 uv run scripts/sign_windows.py path\to\file.exe
 ```
 
-### Verification
+#### Verification
 
 ```powershell
 signtool verify /pa /v path\to\file.exe
@@ -167,14 +163,77 @@ signtool verify /pa /v path\to\file.exe
 
 ---
 
+## macOS (Apple Developer)
+
+Local signing via `codesign` + notarization via `notarytool`.
+No per-sign limits. Tauri handles everything automatically.
+
+### 1. What to buy
+
+A **$99/year Apple Developer Program** membership at
+https://developer.apple.com/programs/
+
+### 2. Create a Developer ID certificate
+
+1. Open Xcode → Settings → Accounts → Manage Certificates
+2. Create a **Developer ID Application** certificate
+3. Export it as a `.p12` file with a password
+
+### 3. Required env vars
+
+Set these in CI:
+
+```
+APPLE_CERTIFICATE=<base64-encoded .p12 file>
+APPLE_CERTIFICATE_PASSWORD=<.p12 password>
+APPLE_SIGNING_IDENTITY=<certificate name, e.g. "Developer ID Application: Your Name (TEAMID)">
+APPLE_ID=<your Apple ID email>
+APPLE_PASSWORD=<app-specific password>
+APPLE_TEAM_ID=<your team ID>
+```
+
+Generate an app-specific password at https://appleid.apple.com/account/manage
+
+### 4. How it works
+
+Tauri automatically:
+
+- Signs all binaries with `codesign` using your Developer ID cert
+- Notarizes the `.dmg` with `notarytool`
+- Staples the notarization ticket
+
+No custom scripts or whitelists needed. All binaries must be signed
+for notarization to pass.
+
+### 5. Verification
+
+```bash
+codesign --verify --deep --strict /path/to/Vibe.app
+spctl --assess --type exec /path/to/Vibe.app
+```
+
+---
+
+## CI (GitHub Actions)
+
+In `.github/workflows/release.yml`:
+
+- **Windows**: check `sign-windows` input to enable signing.
+  The workflow sets `SIGN_ENABLED=true` and passes `SSL_COM_*` secrets.
+- **macOS**: set `APPLE_*` secrets in repo settings. Tauri signs automatically.
+
+Add all secrets under repo Settings → Secrets and variables → Actions.
+
+---
+
 ## Summary
 
-- Buy a Code Signing certificate
-- Enable eSigner during checkout
-- Complete validation
-- Retrieve Credential ID and TOTP secret from Orders
-- Verify TOTP once
-- `scripts/sign_windows.py` handles signing via Jsign + whitelist
-- Tauri calls it automatically via `signCommand` in config
-
-That's it.
+| | Windows | macOS |
+|---|---|---|
+| Provider | SSL.com eSigner | Apple Developer |
+| Cost | ~$60-90/yr + eSigner tier | $99/yr |
+| Signing limit | Yes (depends on tier) | No |
+| Signing tool | Jsign (via `sign_windows.py`) | `codesign` (built-in) |
+| Notarization | N/A | `notarytool` (automatic) |
+| Sign everything? | No, whitelist only | Yes, required |
+| Custom script | `scripts/sign_windows.py` | None needed |
