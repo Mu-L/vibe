@@ -33,6 +33,9 @@ Usage:
       "args": ["scripts/sign_windows.py", "%1"]
     }
   }
+
+Verify signature:
+  & "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" verify /pa /v <file>
 """
 import base64
 import subprocess
