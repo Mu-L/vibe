@@ -102,6 +102,7 @@ def sign(path: str) -> None:
 
 
 def main() -> None:
+    print(f"[sign] cwd={os.getcwd()} args={sys.argv[1:]}")
     path = sys.argv[1]
     basename = os.path.basename(path)
 
