@@ -7,6 +7,10 @@ on:
                 description: 'Sign Windows binaries with SSL.com'
                 type: boolean
                 default: false
+            sign-macos:
+                description: 'Sign and notarize macOS binaries with Apple Developer ID'
+                type: boolean
+                default: false
 
 jobs:
     publish-tauri:
@@ -75,15 +79,25 @@ jobs:
               uses: tauri-apps/tauri-action@v0
               env:
                   GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                  # Tauri Updater
                   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
                   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+                  # Analytics (Aptabase)
                   APTABASE_APP_KEY: ${{ secrets.APTABASE_APP_KEY }}
                   APTABASE_BASE_URL: ${{ secrets.APTABASE_BASE_URL }}
+                  # Windows signing (SSL.com eSigner)
                   SIGN_ENABLED: ${{ matrix.platform == 'windows-latest' && inputs.sign-windows && 'true' || 'false' }}
                   SSL_COM_CREDENTIAL_ID: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
                   SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
                   SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
                   SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+                  # macOS signing and notarization (Apple Developer ID)
+                  APPLE_CERTIFICATE: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_CERTIFICATE || '' }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
+                  APPLE_SIGNING_IDENTITY: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_SIGNING_IDENTITY || '' }}
+                  APPLE_ID: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_ID || '' }}
+                  APPLE_PASSWORD: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_PASSWORD || '' }}
+                  APPLE_TEAM_ID: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_TEAM_ID || '' }}
               with:
                   tagName: v__VERSION__ # the action automatically replaces __VERSION__ with the app version.
                   releaseName: "v__VERSION__"

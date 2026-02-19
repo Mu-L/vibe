@@ -3,13 +3,13 @@
 		"externalBin": ["binaries/sona", "binaries/ffmpeg", "binaries/sona-diarize"],
 		"macOS": {
 			"entitlements": "entitlements.plist",
-			"signingIdentity": "-",
-			"hardenedRuntime": false,
+			"signingIdentity": "Developer ID Application: Jacob Kolani (VSTAWC326G)",
+			"hardenedRuntime": true,
 			"dmg": {
 				"background": "../../design/dmg_background.png",
 				"windowSize": {
-					"height": 400,
-					"width": 660
+					"height": 326,
+					"width": 720
 				}
 			}
 		}

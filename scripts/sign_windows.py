@@ -38,21 +38,19 @@ Verify signature:
   & "${env:ProgramFiles(x86)}\\Windows Kits\\10\\bin\\*\\x64\\signtool.exe" verify /pa /v <file>
 """
 import base64
+import fnmatch
 import subprocess
 import sys
 import os
-import re
 import shutil
 
-APP_NAME = "vibe"
 TIMESTAMP_URL = "http://timestamp.sectigo.com"
 
 # Whitelist patterns - only these get signed
-SIGN_PATTERNS: list[re.Pattern[str]] = [
-    # Main application executable
-    re.compile(rf"^{re.escape(APP_NAME)}\.exe$", re.IGNORECASE),
-    # NSIS installer
-    re.compile(rf"^{re.escape(APP_NAME)}[-_].*setup.*\.exe$", re.IGNORECASE),
+SIGN_PATTERNS = [
+    "vibe.exe",
+    "vibe*setup*.exe",
+    "sona.exe",
 ]
 
 
@@ -105,7 +103,7 @@ def main() -> None:
     path = sys.argv[1]
     basename = os.path.basename(path)
 
-    if not any(p.match(basename) for p in SIGN_PATTERNS):
+    if not any(fnmatch.fnmatch(basename.lower(), p) for p in SIGN_PATTERNS):
         print(f"[sign] SKIP: {basename}")
         sys.exit(0)
 
