@@ -164,6 +164,22 @@ xcrun notarytool history \
   --team-id "$APPLE_TEAM_ID"
 ```
 
+Once the status changes from "In Progress", view the submission log:
+
+```bash
+xcrun notarytool log <submission-id> \
+  --apple-id "$APPLE_ID" \
+  --password "$APPLE_PASSWORD" \
+  --team-id "$APPLE_TEAM_ID"
+```
+
+The log shows detailed results and rejection reasons if any. It is only available
+after Apple finishes processing (not while "In Progress").
+
+If notarization stays stuck for 12+ hours, contact
+[Apple Developer Support](https://developer.apple.com/contact/) — they may need
+to manually configure your team for notarization.
+
 Once the status shows **Accepted**, staple the ticket manually:
 
 ```bash
