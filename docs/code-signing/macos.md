@@ -149,7 +149,13 @@ Run `tauri build` again. Tauri will:
 2. Wait for Apple's response
 3. Staple the notarization ticket to the app
 
-### Check notarization status
+### Notarization can be slow
+
+First-time notarization for a new app/certificate can take **hours** on Apple's servers,
+especially for large payloads. This is normal.
+
+You can safely **Ctrl+C** the Tauri build after the submission is uploaded — the process
+runs entirely on Apple's side. Then check the status manually:
 
 ```bash
 xcrun notarytool history \
@@ -157,6 +163,17 @@ xcrun notarytool history \
   --password "$APPLE_PASSWORD" \
   --team-id "$APPLE_TEAM_ID"
 ```
+
+Once the status shows **Accepted**, staple the ticket manually:
+
+```bash
+xcrun stapler staple /path/to/vibe.app
+```
+
+Stapling is per `.app` bundle — it covers all binaries inside it. No need to staple
+individual binaries.
+
+Subsequent notarizations should be much faster.
 
 ## 7. CI/CD setup (GitHub Actions)
 
