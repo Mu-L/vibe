@@ -7,8 +7,16 @@
 			"hardenedRuntime": true,
 			"dmg": {
 				"background": "../../design/dmg_background.png",
+				"appPosition": {
+					"x": 145,
+					"y": 130
+				},
+				"applicationFolderPosition": {
+					"x": 560,
+					"y": 130
+				},
 				"windowSize": {
-					"height": 326,
+					"height": 340,
 					"width": 720
 				}
 			}
