@@ -73,7 +73,10 @@ C:\msys64\msys2_shell.cmd -mingw64 -defterm -no-start -use-full-path
 Then build sona and place it as sidecar (from `desktop/`):
 
 ```console
+# macOS/Linux
 CGO_ENABLED=1 go build -C ../sona -o ../desktop/src-tauri/binaries/sona-$(rustc -vV | awk '/host:/ {print $2}') ./cmd/sona
+# Windows
+CGO_ENABLED=1 go build -C ../sona -o ../desktop/src-tauri/binaries/sona-$(rustc -vV | awk '/host:/ {print $2}').exe ./cmd/sona
 ```
 
 ## Test
