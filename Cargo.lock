@@ -2380,7 +2380,7 @@ dependencies = [
  "tokio",
  "tower-service",
  "tracing",
- "windows-registry 0.5.3",
+ "windows-registry 0.6.1",
 ]
 
 [[package]]
@@ -2395,7 +2395,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.58.0",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -3851,7 +3851,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5776,7 +5776,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-aptabase"
 version = "1.0.0"
-source = "git+https://github.com/thewh1teagle/tauri-plugin-aptabase?branch=deterministic-daily-session#0187390945a43a3f1d19cb4905bd4e0b20b54a99"
+source = "git+https://github.com/thewh1teagle/tauri-plugin-aptabase?branch=deterministic-daily-session#ef066b3ffafc451fd7a1e4fc788ae57313149a6d"
 dependencies = [
  "futures",
  "log",
@@ -7284,7 +7284,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
