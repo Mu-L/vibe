@@ -67,6 +67,7 @@ export function viewModel() {
 	const [isCollectingFolder, setIsCollectingFolder] = useState(false)
 	const cancelYtDlpRef = useRef<boolean>(false)
 	const switchingToLinkRef = useRef(false)
+	const cachedYtDlpVersion = useRef<string | null | undefined>(undefined)
 	const skippedYtDlpUpdatePromptRef = useRef(false)
 
 	const { updateApp, availableUpdate } = useContext(UpdaterContext)
@@ -148,13 +149,19 @@ export function viewModel() {
 			const binaryExists = await ytDlp.exists()
 			let latestVersion: string | null = null
 
-			try {
-				latestVersion = await ytDlp.getLatestVersion()
-			} catch (e) {
-				console.error('Failed to fetch latest yt-dlp version', e)
-				if (binaryExists) {
-					preference.setHomeTabIndex(2)
-					return
+			if (cachedYtDlpVersion.current !== undefined) {
+				latestVersion = cachedYtDlpVersion.current
+			} else {
+				try {
+					latestVersion = await ytDlp.getLatestVersion()
+					cachedYtDlpVersion.current = latestVersion
+				} catch (e) {
+					console.error('Failed to fetch latest yt-dlp version', e)
+					cachedYtDlpVersion.current = null
+					if (binaryExists) {
+						preference.setHomeTabIndex(2)
+						return
+					}
 				}
 			}
 
