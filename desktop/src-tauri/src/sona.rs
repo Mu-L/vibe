@@ -7,11 +7,6 @@ use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Deserialize)]
-struct DevicesResponse {
-    data: Vec<GpuDevice>,
-}
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct GpuDevice {
     pub index: i32,
@@ -348,21 +343,30 @@ impl SonaProcess {
         Ok(flat_stream)
     }
 
-    pub async fn get_gpu_devices(&self) -> Result<Vec<GpuDevice>> {
-        let url = format!("{}/v1/devices", self.base_url());
-        let resp = self.client.get(&url).send().await.context("failed to request GPU devices from sona")?;
-        if !resp.status().is_success() {
-            bail!("sona /v1/devices failed: {}", resp.text().await.unwrap_or_default());
-        }
-        let body: DevicesResponse = resp.json().await.context("failed to parse GPU devices response")?;
-        Ok(body.data)
-    }
-
     pub fn kill(&mut self) {
         tracing::debug!("killing sona process");
         let _ = self.child.kill();
         let _ = self.child.wait();
     }
+}
+
+/// Runs `sona devices` to list GPU devices without needing a running server.
+pub fn list_gpu_devices(binary_path: &Path) -> Result<Vec<GpuDevice>> {
+    let output = Command::new(binary_path)
+        .args(["devices"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .context("failed to run sona devices")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        bail!("sona devices failed: {}", stderr.trim());
+    }
+
+    let devices: Vec<GpuDevice> = serde_json::from_slice(&output.stdout)
+        .context("failed to parse sona devices output")?;
+    Ok(devices)
 }
 
 impl Drop for SonaProcess {

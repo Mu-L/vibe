@@ -547,10 +547,9 @@ pub async fn load_model(app_handle: tauri::AppHandle, model_path: String, gpu_de
 }
 
 #[tauri::command]
-pub async fn get_gpu_devices(sona_state: State<'_, Mutex<SonaState>>) -> Result<Vec<crate::sona::GpuDevice>> {
-    let state = sona_state.lock().await;
-    let sona = state.process.as_ref().context("sona not running")?;
-    let devices = sona.get_gpu_devices().await?;
+pub async fn get_gpu_devices(app_handle: tauri::AppHandle) -> Result<Vec<crate::sona::GpuDevice>> {
+    let binary_path = resolve_sona_binary(&app_handle)?;
+    let devices = crate::sona::list_gpu_devices(&binary_path)?;
     Ok(devices)
 }
 
