@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ModifyState } from '~/lib/utils'
@@ -14,6 +14,7 @@ import { join } from '@tauri-apps/api/path'
 import { toast as hotToast } from 'sonner'
 import * as dialog from '@tauri-apps/plugin-dialog'
 import { Claude, defaultClaudeConfig, defaultOllamaConfig, defaultOpenAIConfig, Llm, Ollama, OpenAICompatible } from '~/lib/llm'
+import { Check, Copy } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { ScrollArea } from '~/components/ui/scroll-area'
@@ -43,6 +44,15 @@ export default function ModelOptions({ options, setOptions }: ParamsProps) {
 	const { t, i18n } = useTranslation()
 	const toast = useToastProvider()
 	const [llm, setLlm] = useState<Llm | null>(null)
+	const [llmError, setLlmError] = useState<string | null>(null)
+	const [llmErrorCopied, setLlmErrorCopied] = useState(false)
+	const llmErrorCopyTimer = useRef<number | null>(null)
+
+	useEffect(() => {
+		return () => {
+			if (llmErrorCopyTimer.current) window.clearTimeout(llmErrorCopyTimer.current)
+		}
+	}, [])
 
 	useEffect(() => {
 		const platform = preference.llmConfig?.platform
@@ -73,6 +83,7 @@ export default function ModelOptions({ options, setOptions }: ParamsProps) {
 	}
 
 	async function checkLlm() {
+		setLlmError(null)
 		try {
 			const promise = llm!.ask('Hello, how are you?')
 			hotToast.promise(promise, {
@@ -83,6 +94,7 @@ export default function ModelOptions({ options, setOptions }: ParamsProps) {
 			await promise
 		} catch (e) {
 			console.error(e)
+			setLlmError(String(e))
 		}
 	}
 
@@ -270,6 +282,26 @@ export default function ModelOptions({ options, setOptions }: ParamsProps) {
 							<Button onClick={checkLlm} size="sm" className="w-full">
 								{t('common.run-llm-check')}
 							</Button>
+
+							{llmError && (
+								<div className="relative rounded-lg border border-destructive/30 bg-destructive/5 p-3 pe-10">
+									<button
+										type="button"
+										className="absolute end-2 top-2 p-1 text-muted-foreground hover:text-foreground"
+										onClick={() => {
+											navigator.clipboard.writeText(llmError)
+											setLlmErrorCopied(true)
+											if (llmErrorCopyTimer.current) window.clearTimeout(llmErrorCopyTimer.current)
+											llmErrorCopyTimer.current = window.setTimeout(() => {
+												setLlmErrorCopied(false)
+												llmErrorCopyTimer.current = null
+											}, 2000)
+										}}>
+										{llmErrorCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+									</button>
+									<pre className="whitespace-pre-wrap break-all text-xs text-destructive">{llmError}</pre>
+								</div>
+							)}
 
 							{llmConfig?.platform === 'claude' && (
 								<div className="flex flex-col gap-2 text-sm">

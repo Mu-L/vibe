@@ -47,7 +47,7 @@ export class Ollama implements Llm {
 
 		if (!response.ok) {
 			console.error(`request details: `, body)
-			throw new Error(`Claude: ${response.status} - ${response.statusText}`)
+			throw new Error(`Ollama: ${response.status} - ${response.statusText}`)
 		}
 
 		const data = await response.json()
