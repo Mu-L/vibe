@@ -27,7 +27,6 @@ pub struct SonaProcess {
     child: Child,
     client: reqwest::Client,
     stderr_buf: Arc<Mutex<String>>,
-    no_gpu: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -60,14 +59,11 @@ pub enum SonaEvent {
 }
 
 impl SonaProcess {
-    pub fn spawn(binary_path: &Path, ffmpeg_path: Option<&Path>, diarize_path: Option<&Path>, no_gpu: bool) -> Result<Self> {
-        tracing::debug!("spawning sona at {} (no_gpu={})", binary_path.display(), no_gpu);
+    pub fn spawn(binary_path: &Path, ffmpeg_path: Option<&Path>, diarize_path: Option<&Path>) -> Result<Self> {
+        tracing::debug!("spawning sona at {}", binary_path.display());
 
         let mut cmd = Command::new(binary_path);
-        let mut args = vec!["serve", "--port", "0"];
-        if no_gpu {
-            args.push("--no-gpu");
-        }
+        let args = vec!["serve", "--port", "0"];
         cmd.args(&args).stdout(Stdio::piped()).stderr(Stdio::piped());
 
         if let Some(ffmpeg) = ffmpeg_path {
@@ -164,7 +160,6 @@ impl SonaProcess {
             // Bypass system proxy for localhost (avoids corporate proxy blocking sona requests)
             client: reqwest::Client::builder().no_proxy().build().unwrap(),
             stderr_buf,
-            no_gpu,
         })
     }
 
@@ -176,19 +171,18 @@ impl SonaProcess {
         matches!(self.child.try_wait(), Ok(None))
     }
 
-    pub fn no_gpu(&self) -> bool {
-        self.no_gpu
-    }
-
     fn recent_stderr(&self) -> String {
         self.stderr_buf.lock().map(|b| b.trim().to_string()).unwrap_or_default()
     }
 
-    pub async fn load_model(&mut self, path: &str, gpu_device: Option<i32>) -> Result<()> {
+    pub async fn load_model(&mut self, path: &str, gpu_device: Option<i32>, no_gpu: bool) -> Result<()> {
         let url = format!("{}/v1/models/load", self.base_url());
         let mut body = serde_json::json!({"path": path});
         if let Some(dev) = gpu_device {
             body["gpu_device"] = serde_json::json!(dev);
+        }
+        if no_gpu {
+            body["no_gpu"] = serde_json::json!(true);
         }
         let mut last_err = None;
         for attempt in 0..3 {

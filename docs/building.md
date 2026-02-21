@@ -58,22 +58,22 @@ Download prebuilt whisper.cpp libs (one-time):
 uv run sona/scripts/download-libs.py
 ```
 
-**Windows only** — install MinGW and Vulkan headers via [MSYS2](https://www.msys2.org/):
+**Windows only** — install [MSYS2](https://www.msys2.org/), then install MinGW and Vulkan headers:
 
 ```console
 pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-vulkan-devel
 ```
 
-Add MinGW to PATH (PowerShell):
+Open an MSYS2 MinGW64 shell with your full Windows PATH (so `go`, `rustc`, etc. are available):
 
 ```console
-$env:PATH = "C:\msys64\mingw64\bin;$env:PATH"
+C:\msys64\msys2_shell.cmd -mingw64 -defterm -no-start -use-full-path
 ```
 
-Build sona and place it as sidecar:
+Then build sona and place it as sidecar:
 
 ```console
-CGO_ENABLED=1 go build -C sona -o ../desktop/src-tauri/binaries/sona-$(rustc -vV | awk '/host:/ {print $2}') ./cmd/sona
+CGO_ENABLED=1 go build -C sona -o ../desktop/src-tauri/binaries/sona-$(rustc -vV | awk '/host:/ {print $2}').exe ./cmd/sona
 ```
 
 ## Test
