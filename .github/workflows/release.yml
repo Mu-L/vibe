@@ -116,12 +116,3 @@ jobs:
           run: gh workflow run test-release.yml
           env:
             GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    update-website:
-      runs-on: macos-latest
-      needs: publish-tauri
-      steps:
-        - uses: actions/checkout@v4
-        - name: Update website URLs
-          run: gh workflow run website.yml
-          env:
-            GH_TOKEN: ${{ secrets.GH_TOKEN }}
