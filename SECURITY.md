@@ -3,7 +3,7 @@
 ## Reporting Security Issues
 
 If you find a security issue in Vibe, please report it responsibly.  
-I take security reports seriously and will do my best to review and address valid issues.
+We take security reports seriously and will do my best to review and address valid issues.
 
 The preferred way to report a vulnerability is via GitHub’s **Security Advisory – “Report a Vulnerability”** feature.
 
