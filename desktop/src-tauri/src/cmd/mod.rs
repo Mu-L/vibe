@@ -558,6 +558,14 @@ pub async fn load_model(app_handle: tauri::AppHandle, model_path: String, gpu_de
 }
 
 #[tauri::command]
+pub async fn get_gpu_devices(sona_state: State<'_, Mutex<SonaState>>) -> Result<Vec<crate::sona::GpuDevice>> {
+    let state = sona_state.lock().await;
+    let sona = state.process.as_ref().context("sona not running")?;
+    let devices = sona.get_gpu_devices().await?;
+    Ok(devices)
+}
+
+#[tauri::command]
 pub async fn get_api_base_url(sona_state: State<'_, Mutex<SonaState>>) -> Result<Option<String>> {
     let state = sona_state.lock().await;
     Ok(state.process.as_ref().map(|process| process.base_url()))

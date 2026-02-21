@@ -169,18 +169,40 @@ export default function SettingsPage({ setVisible }: SettingsPageProps) {
 									</Select>
 								</div>
 
+								{!vm.isMacOS && (
 								<div className="space-y-2">
 									<Label>{t('common.gpu-device')}</Label>
-									<Input
-										type="number"
-										value={vm.preference.gpuDevice ?? ''}
-										onChange={(e) => {
-											const val = e.target.value
-											vm.preference.setGpuDevice(val === '' ? null : parseInt(val, 10))
-										}}
-										placeholder={t('common.gpu-device-placeholder')}
-									/>
+									{vm.gpuDevices.length > 0 ? (
+										<Select
+											value={vm.preference.gpuDevice != null ? String(vm.preference.gpuDevice) : 'auto'}
+											onValueChange={(value) => {
+												vm.preference.setGpuDevice(value === 'auto' ? null : parseInt(value, 10))
+											}}>
+											<SelectTrigger>
+												<SelectValue placeholder={t('common.gpu-device')} />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="auto">Auto</SelectItem>
+												{vm.gpuDevices.map((device) => (
+													<SelectItem key={device.index} value={String(device.index)}>
+														{device.description}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									) : (
+										<Input
+											type="number"
+											value={vm.preference.gpuDevice ?? ''}
+											onChange={(e) => {
+												const val = e.target.value
+												vm.preference.setGpuDevice(val === '' ? null : parseInt(val, 10))
+											}}
+											placeholder={t('common.gpu-device-placeholder')}
+										/>
+									)}
 								</div>
+							)}
 
 								<div className="space-y-1 pt-1">
 									<Button

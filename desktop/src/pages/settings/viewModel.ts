@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { ask, open } from '@tauri-apps/plugin-dialog'
 import * as shell from '@tauri-apps/plugin-shell'
+import { platform } from '@tauri-apps/plugin-os'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import * as config from '~/lib/config'
@@ -12,6 +13,13 @@ import { load } from '@tauri-apps/plugin-store'
 import { useStoreValue } from '~/lib/useStoreValue'
 import * as clipboard from '@tauri-apps/plugin-clipboard-manager'
 import { collectLogs, getPrettyVersion } from '~/lib/logs'
+
+export interface GpuDevice {
+	index: number
+	name: string
+	description: string
+	type: string
+}
 
 async function openModelPath() {
 	let dst = await invoke<string>('get_models_folder')
@@ -89,6 +97,8 @@ export function viewModel() {
 	const [apiBaseUrl, setApiBaseUrl] = useState<string | null>(null)
 	const [isStartingApiServer, setIsStartingApiServer] = useState(false)
 	const [isStoppingApiServer, setIsStoppingApiServer] = useState(false)
+	const [gpuDevices, setGpuDevices] = useState<GpuDevice[]>([])
+	const isMacOS = platform() === 'macos'
 	const navigate = useNavigate()
 
 	async function askAndReset() {
@@ -150,6 +160,16 @@ export function viewModel() {
 		listenersRef.current.push(await listen('tauri://focus', refreshApiServerStatus))
 	}
 
+	async function loadGpuDevices() {
+		try {
+			const devices = await invoke<GpuDevice[]>('get_gpu_devices')
+			setGpuDevices(devices)
+		} catch (error) {
+			console.error(error)
+			setGpuDevices([])
+		}
+	}
+
 	async function refreshApiServerStatus() {
 		try {
 			const baseUrl = await invoke<string | null>('get_api_base_url')
@@ -189,6 +209,7 @@ export function viewModel() {
 		loadModels()
 		getDefaultModel()
 		refreshApiServerStatus()
+		loadGpuDevices()
 		onWindowFocus()
 		return () => {
 			listenersRef.current.forEach((unlisten) => unlisten())
@@ -219,5 +240,7 @@ export function viewModel() {
 		reportIssue,
 		loadModels,
 		changeModelsFolder,
+		gpuDevices,
+		isMacOS,
 	}
 }

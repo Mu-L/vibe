@@ -1,11 +1,25 @@
 use eyre::{bail, Context, ContextCompat, Result};
 use futures_util::StreamExt;
 use reqwest::multipart;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
+
+#[derive(Debug, Deserialize)]
+struct DevicesResponse {
+    data: Vec<GpuDevice>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct GpuDevice {
+    pub index: i32,
+    pub name: String,
+    pub description: String,
+    #[serde(rename = "type")]
+    pub device_type: String,
+}
 use tokio_util::io::ReaderStream;
 
 pub struct SonaProcess {
@@ -338,6 +352,16 @@ impl SonaProcess {
         });
 
         Ok(flat_stream)
+    }
+
+    pub async fn get_gpu_devices(&self) -> Result<Vec<GpuDevice>> {
+        let url = format!("{}/v1/devices", self.base_url());
+        let resp = self.client.get(&url).send().await.context("failed to request GPU devices from sona")?;
+        if !resp.status().is_success() {
+            bail!("sona /v1/devices failed: {}", resp.text().await.unwrap_or_default());
+        }
+        let body: DevicesResponse = resp.json().await.context("failed to parse GPU devices response")?;
+        Ok(body.data)
     }
 
     pub fn kill(&mut self) {

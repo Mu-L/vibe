@@ -94,6 +94,7 @@ async fn main() -> Result<()> {
             cmd::glob_files,
             cmd::download_model,
             cmd::load_model,
+            cmd::get_gpu_devices,
             cmd::get_api_base_url,
             cmd::start_api_server,
             cmd::stop_api_server,

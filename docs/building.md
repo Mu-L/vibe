@@ -50,6 +50,32 @@ You can also do it all in one step:
 uv run scripts/pre_build.py --dev   # or --build
 ```
 
+## Build sona locally (dev)
+
+Download prebuilt whisper.cpp libs (one-time):
+
+```console
+uv run sona/scripts/download-libs.py
+```
+
+**Windows only** — install MinGW and Vulkan headers via [MSYS2](https://www.msys2.org/):
+
+```console
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-vulkan-devel
+```
+
+Add MinGW to PATH (PowerShell):
+
+```console
+$env:PATH = "C:\msys64\mingw64\bin;$env:PATH"
+```
+
+Build sona and place it as sidecar:
+
+```console
+CGO_ENABLED=1 go build -C sona -o ../desktop/src-tauri/binaries/sona-$(rustc -vV | awk '/host:/ {print $2}') ./cmd/sona
+```
+
 ## Test
 
 ```console
