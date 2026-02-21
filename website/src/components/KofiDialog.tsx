@@ -8,7 +8,7 @@ interface KofiDialogProps {
 export default function KofiDialog({ open, onOpenChange }: KofiDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="h-[90vh] w-[95vw] max-w-[1100px] overflow-hidden border-white bg-white p-0">
+			<DialogContent className="h-[75dvh] w-[86vw] max-w-[560px] overflow-hidden border-white bg-white p-0 md:h-[90vh] md:w-[430px] md:max-w-[430px]">
 				<div className="h-full w-full rounded-xl bg-white p-0">
 					<iframe
 						src="https://ko-fi.com/thewh1teagle/?hidefeed=true&widget=true&embed=true&preview=true"
