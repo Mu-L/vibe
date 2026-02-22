@@ -20,3 +20,13 @@ If you're fixing a clear **critical bug**, you may open a PR without prior discu
 - **Test your changes locally before opening the PR** so reviews and merging stay smooth.
 - If you're fixing a **critical bug**, you may skip issue discussion — but the PR must contain **only the relevant fix** (no refactors, no formatting changes).
 - If your change affects core logic or behavior, include a short explanation or example in the PR description.
+
+## AI-Assisted (Vibe Coding) PRs
+
+We welcome PRs written with AI tools! Just hold them to the same standard as any other PR:
+
+- **Stay focused** — one clear change per PR, no drive-by refactors or formatting noise.
+- **Know the codebase** — have the agent read our docs and follow existing conventions before writing code.
+- **Review what it wrote** — you're responsible for the final result, not the AI.
+- **Large or wide-reaching changes?** Open an issue first so we can align before you invest time.
+- **High bar, same as everyone** — AI-generated code must be clean, tested, and minimal.
