@@ -25,7 +25,7 @@ If you're fixing a clear **critical bug**, you may open a PR without prior discu
 
 We welcome PRs written with AI tools! Just hold them to the same standard as any other PR:
 
-- **Stay focused** — one clear change per PR, no drive-by refactors or formatting noise.
+- **Stay focused** — one clear change per PR, no drive-by refactors or formatting noise. Your own build scripts, helper tools, etc. usually don't belong in the PR.
 - **Know the codebase** — have the agent read our docs and follow existing conventions before writing code.
 - **Review what it wrote** — you're responsible for the final result, not the AI.
 - **Large or wide-reaching changes?** Open an issue first so we can align before you invest time.
