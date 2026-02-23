@@ -69,6 +69,10 @@
 
 # Contribute 🤝
 
+## Developers
+
+Get started with local development [here](docs/building.md).
+
 PRs are welcomed!
 In addition, you're welcome to add translations.
 
