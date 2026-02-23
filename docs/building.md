@@ -6,7 +6,7 @@
 
 **Linux**:
 
-Based on [tauri/prerequisites/#setting-up-linux](https://tauri.app/v1/guides/getting-started/prerequisites/#setting-up-linux)
+Based on [tauri/prerequisites/#setting-up-linux](https://v2.tauri.app/start/prerequisites/#linux)
 
 ```console
 sudo apt-get update
