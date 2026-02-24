@@ -1,7 +1,8 @@
 # Windows Code Signing (SSL.com + YubiKey FIPS)
 
 Local hardware-based code signing using **SSL.com Code Signing Certificate**
-installed on a **YubiKey FIPS (firmware 5.4.x)** e.g. [yubikey-5c-nano-fips](https://www.yubico.com/il/product/yubikey-5-fips-series/yubikey-5c-nano-fips/)
+installed on a **YubiKey FIPS (firmware 5.4.x)**  
+Example device: yubikey-5c-nano-fips
 
 No cloud signing  
 No monthly fees  
@@ -13,18 +14,18 @@ Unlimited signings
 
 In this flow:
 
-- The private key is generated inside the YubiKey
-- SSL.com re-issues the certificate bound to that hardware
+- The private key is generated **inside the YubiKey**
+- SSL.com **re-issues** the certificate bound to that hardware key
 - Signing works locally using the YubiKey (PIV / smart card)
-- No eSigner, no remote service, no .pfx file
+- No eSigner, no remote service, no `.pfx` file
 
 ---
 
 ## Requirements
 
-- Windows machine with physical USB access (no RDP)
-- YubiKey FIPS 5.4.x (5.4.3 confirmed)
-- SSL.com Code Signing Certificate
+- Windows machine with **physical USB access** (no RDP)
+- YubiKey **FIPS 5.4.x** (5.4.3 confirmed)
+- SSL.com **Code Signing Certificate** (Personal / Individual)
 - Administrator access on Windows
 
 ---
@@ -36,9 +37,9 @@ Download and install **YubiKey Manager** from Yubico.
 This installs:
 
 - YubiKey Manager GUI
-- ykman CLI (used for PIV and attestation)
+- `ykman` CLI (used for PIV, keys, attestation)
 
-The CLI is installed at:
+Default install path:
 
 ```
 C:\Program Files\Yubico\YubiKey Manager
@@ -61,8 +62,8 @@ $env:PATH += ";C:\Program Files\Yubico\YubiKey Manager"
 
 Make sure:
 
-- YubiKey Manager GUI is closed
-- The YubiKey is physically connected (not via RDP)
+- YubiKey Manager GUI is **closed**
+- The YubiKey is **physically connected** (not via RDP)
 
 Run:
 
@@ -78,9 +79,10 @@ YubiKey 5C Nano FIPS (5.4.3) [OTP+FIDO+CCID]
 
 ---
 
-## 4. Reset PIV application (recommended)
+## 4. Reset PIV application (recommended, destructive)
 
-This deletes **PIV data only**.
+This deletes **all PIV keys and certificates** on the token.
+Only do this at the **start** of the process.
 
 ```
 ykman piv reset
@@ -90,8 +92,8 @@ Confirm with `y`.
 
 Defaults after reset:
 
-- PIN: 123456
-- PUK: 12345678
+- PIN: `123456`
+- PUK: `12345678`
 - Management Key: default
 
 ---
@@ -106,19 +108,23 @@ ykman piv access change-pin
 
 ---
 
-## 6. Generate private key on the YubiKey (no touch)
+## 6. Generate private key on the YubiKey (ECC, no touch)
 
 Using slot **9c (Digital Signature)**  
-Algorithm: RSA 2048  
+Algorithm: **ECC P-256 (required for SSL.com EV / YubiKey)**  
 Touch policy: never
 
 ```
-ykman piv keys generate --algorithm RSA2048 --pin-policy once --touch-policy never 9c pubkey.pem
+ykman piv keys generate \
+ --algorithm ECCP256 \
+ --pin-policy once \
+ --touch-policy never \
+ 9c pubkey.pem
 ```
 
 When prompted for Management Key:
 
-- Press Enter (use default)
+- Press **Enter** (use default)
 
 ---
 
@@ -140,13 +146,13 @@ Enter PIN when prompted.
 
 ## 8. Generate attestation certificates
 
-### 8.1 Generate attestation
+### 8.1 Generate attestation (for slot 9c)
 
 ```
 ykman piv keys attest 9c attestation.crt
 ```
 
-### 8.2 Export attestation intermediate
+### 8.2 Export attestation intermediate (slot f9)
 
 ```
 ykman piv certificates export f9 attestation-intermediate.crt
@@ -157,29 +163,33 @@ ykman piv certificates export f9 attestation-intermediate.crt
 ## 9. Submit attestation to SSL.com
 
 1. Login to SSL.com
-2. Go to Orders
+2. Go to **Orders**
 3. Open the Code Signing order
-4. Manage → Attestation
+4. **Manage → Attestation**
 5. Paste:
-    - attestation.crt
-    - attestation-intermediate.crt
+    - `attestation.crt`
+    - `attestation-intermediate.crt`
 6. Submit
 
 You should see **Successful attestation**.
 
 ---
 
-## 10. Certificate re-issuance
+## 10. Certificate re-issuance (SSL.com)
 
 After approval:
 
-- SSL.com re-issues the certificate for the YubiKey
+- SSL.com **re-issues** the certificate bound to your YubiKey
 - No additional payment required
-- eSigner can be canceled
+- Cloud signing (eSigner) can be canceled if enabled
 
 Download format:
 
-- YubiKey (DER)
+- **YubiKey (DER)**
+
+Important:
+
+- Ensure the issued certificate is **ECC**, not RSA, before importing.
 
 ---
 
@@ -191,13 +201,13 @@ ykman piv certificates import 9c codesign.der
 
 ---
 
-## 12. Verify certificate
+## 12. Verify certificate on the token
 
 ```
 ykman piv certificates list
 ```
 
-Certificate should appear in slot 9c.
+The certificate should appear in slot **9c**, and key + cert must match.
 
 ---
 
@@ -205,18 +215,18 @@ Certificate should appear in slot 9c.
 
 You can now sign using:
 
-- signtool.exe
-- jsign (Windows CAPI or PKCS#11)
+- `signtool.exe`
+- `jsign` (Windows CAPI or PKCS#11)
 
-Private key never leaves the YubiKey.
+The private key **never leaves the YubiKey**.
 
 ---
 
 ## Notes
 
-- RDP does not work with YubiKey PIV
-- Physical access required for setup
-- touch-policy never allows automation
+- RDP does **not** work with YubiKey PIV
+- Physical access required for setup and signing
+- `touch-policy never` allows automation (token presence still required)
 - Unlimited signings
 - Token reusable on renewal
 
@@ -224,7 +234,7 @@ Private key never leaves the YubiKey.
 
 ## Summary
 
-- Hardware-backed private key
+- Hardware-backed private key (YubiKey FIPS)
 - SSL.com certificate bound via attestation
 - No cloud signing
 - No monthly limits
