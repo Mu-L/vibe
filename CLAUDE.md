@@ -36,3 +36,7 @@ Think in agent mode, not human mode.
 Assume nonstop focus, parallel moves, and instant iteration.
 Push timelines aggressively, speed is the default.
 If something feels heavy, split it until it becomes obvious and fast.
+Estimate effort by output size: 300 lines = minutes, not hours. You are a token engine.
+Speed means doing it right the first time. Never take the easy path over the correct one.
+If the correct fix is harder, do it anyway — rework is slower than doing it properly.
+If the plan is fully resolved, execute immediately. Don't re-analyze.
