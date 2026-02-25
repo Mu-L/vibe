@@ -1,23 +1,19 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = []
+# dependencies = [
+#     "httpx==0.28.1",
+# ]
 # ///
 """
-Windows code signing with SSL.com eSigner via Jsign.
+Windows code signing via remote YubiKey sign server.
 
 Called by Tauri's custom signCommand for each binary.
 Whitelists only installer + main exe, skips everything else.
 
-Prerequisites:
-  choco install jsign
-  choco install temurin  # or any Java runtime
-
 Required env vars:
-  SIGN_ENABLED           - set to "true" to actually sign (default: dry run)
-  SSL_COM_CREDENTIAL_ID  - eSigner credential ID
-  SSL_COM_USERNAME       - SSL.com account email
-  SSL_COM_PASSWORD       - SSL.com account password
-  SSL_COM_TOTP_SECRET    - eSigner TOTP base32 secret
+  SIGN_ENABLED       - set to "true" to actually sign (default: dry run)
+  SIGN_TUNNEL_URL    - sign server URL (e.g. https://signing.example.com)
+  SIGN_TUNNEL_SECRET - shared secret for auth
 
 Usage:
   # Dry run (default):
@@ -37,14 +33,11 @@ Usage:
 Verify signature:
   & "${env:ProgramFiles(x86)}\\Windows Kits\\10\\bin\\*\\x64\\signtool.exe" verify /pa /v <file>
 """
-import base64
 import fnmatch
-import subprocess
 import sys
 import os
-import shutil
 
-TIMESTAMP_URL = "http://timestamp.sectigo.com"
+import httpx
 
 # Whitelist patterns - only these get signed
 SIGN_PATTERNS = [
@@ -54,49 +47,24 @@ SIGN_PATTERNS = [
 ]
 
 
-def find_jsign_jar() -> str:
-    """Find jsign.jar from choco install or PATH."""
-    # Chocolatey default location
-    choco_path = r"C:\ProgramData\chocolatey\lib\jsign\tools\jsign.jar"
-    if os.path.isfile(choco_path):
-        return choco_path
-
-    # Try to find jsign on PATH and look for jar nearby
-    jsign_bin = shutil.which("jsign")
-    if jsign_bin:
-        jar = os.path.join(os.path.dirname(jsign_bin), "jsign.jar")
-        if os.path.isfile(jar):
-            return jar
-
-    print("[sign] ERROR: jsign.jar not found", file=sys.stderr)
-    sys.exit(1)
-
-
 def sign(path: str) -> None:
-    credential_id = os.environ["SSL_COM_CREDENTIAL_ID"]
-    username = os.environ["SSL_COM_USERNAME"]
-    password = os.environ["SSL_COM_PASSWORD"]
-    totp_secret = os.environ["SSL_COM_TOTP_SECRET"]
+    url = os.environ["SIGN_TUNNEL_URL"].rstrip("/")
+    secret = os.environ["SIGN_TUNNEL_SECRET"]
 
-    storepass = f"{username}|{password}"
-    jsign_jar = find_jsign_jar()
+    with open(path, "rb") as f:
+        resp = httpx.post(
+            f"{url}/sign",
+            files={"file": (os.path.basename(path), f)},
+            headers={"X-Tunnel-Secret": secret},
+            timeout=120,
+        )
 
-    # Jsign expects the TOTP secret in base64, SSL.com gives it in base32
-    padded = totp_secret + "=" * (-len(totp_secret) % 8)
-    totp_secret_b64 = base64.b64encode(base64.b32decode(padded)).decode()
+    if resp.status_code != 200:
+        print(f"[sign] ERROR: server returned {resp.status_code}: {resp.text}", file=sys.stderr)
+        sys.exit(1)
 
-    subprocess.run(
-        [
-            "java", "-jar", jsign_jar, "sign",
-            "--storetype", "ESIGNER",
-            "--storepass", storepass,
-            "--alias", credential_id,
-            "--keypass", totp_secret_b64,
-            "--tsaurl", TIMESTAMP_URL,
-            path,
-        ],
-        check=True,
-    )
+    with open(path, "wb") as f:
+        f.write(resp.content)
 
 
 def main() -> None:

@@ -72,10 +72,6 @@ jobs:
             - name: Run pre_build.py on ${{ matrix.platform }}
               run: uv run scripts/pre_build.py --target ${{ matrix.target_triple }}
 
-            - name: Install Jsign (Windows)
-              if: matrix.platform == 'windows-latest'
-              run: choco install jsign -y
-
             - name: Build
               uses: tauri-apps/tauri-action@v0
               env:
@@ -86,12 +82,10 @@ jobs:
                   # Analytics (Aptabase)
                   APTABASE_APP_KEY: ${{ secrets.APTABASE_APP_KEY }}
                   APTABASE_BASE_URL: ${{ secrets.APTABASE_BASE_URL }}
-                  # Windows signing (SSL.com eSigner)
+                  # Windows signing (remote YubiKey sign server)
                   SIGN_ENABLED: ${{ matrix.platform == 'windows-latest' && inputs.sign-windows && 'true' || 'false' }}
-                  SSL_COM_CREDENTIAL_ID: ${{ secrets.SSL_COM_CREDENTIAL_ID }}
-                  SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
-                  SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
-                  SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+                  SIGN_TUNNEL_URL: ${{ secrets.SIGN_TUNNEL_URL }}
+                  SIGN_TUNNEL_SECRET: ${{ secrets.SIGN_TUNNEL_SECRET }}
                   # macOS signing and notarization (Apple Developer ID)
                   APPLE_CERTIFICATE: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_CERTIFICATE || '' }}
                   APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos-latest' && inputs.sign-macos && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
