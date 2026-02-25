@@ -47,13 +47,36 @@ C:\Program Files\Yubico\YubiKey Manager
 
 ---
 
-## 2. Open PowerShell and add ykman to PATH (session only)
+## 2. Open PowerShell and add required tools to PATH (session only)
+
+For signing and verification, these tools must be accessible:
+
+- `ykman` (YubiKey Manager)
+- `jsign` (signing with YubiKey via PKCS#11)
+- `signtool` (verification and signature management)
 
 Open **PowerShell as Administrator**, then run:
 
-```
+```powershell
 cd $env:USERPROFILE\Desktop
+
+# YubiKey Manager (ykman)
 $env:PATH += ";C:\Program Files\Yubico\YubiKey Manager"
+
+# Yubico PIV Tool (PKCS#11 library required by jsign)
+$env:PATH += ";C:\Program Files\Yubico\Yubico PIV Tool\bin"
+
+# Windows SDK signtool (resolve wildcard dynamically)
+$signToolDir = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64" -Directory).FullName
+$env:PATH += ";$signToolDir"
+```
+
+Verify each tool:
+
+```powershell
+ykman list
+ls "C:\Program Files\Yubico\Yubico PIV Tool\bin\libykcs11.dll"
+signtool /?
 ```
 
 ---
@@ -211,14 +234,77 @@ The certificate should appear in slot **9c**, and key + cert must match.
 
 ---
 
-## 13. Signing binaries on Windows
+## 13. Clean existing signatures (recommended)
 
-You can now sign using:
+If the binary was previously signed (for example with a self-signed cert), remove old signatures first.
 
-- `signtool.exe`
-- `jsign` (Windows CAPI or PKCS#11)
+```powershell
+signtool remove /s main.exe
+```
 
-The private key **never leaves the YubiKey**.
+Expected output:
+
+```
+Successfully committed changes to the file
+```
+
+---
+
+## 14. Sign binary using YubiKey (jsign)
+
+Signing is done locally using the YubiKey via PKCS#11.
+The private key **never leaves the hardware**.
+
+```powershell
+jsign `
+  --storetype YUBIKEY `
+  --storepass <PIV_PIN> `
+  --alias "X.509 Certificate for Digital Signature" `
+  --tsaurl http://timestamp.digicert.com `
+  main.exe
+```
+
+Notes:
+
+- `--storepass` is the PIV PIN (default: `123456`)
+- YubiKey presence is required
+- Touch is not required if `touch-policy never` was used
+- DigiCert timestamp is recommended for reliability
+
+Successful output ends with:
+
+```
+Adding Authenticode signature to main.exe
+```
+
+---
+
+## 15. Verify signature (final check)
+
+Always verify using signtool:
+
+```powershell
+signtool verify /pa /v main.exe
+```
+
+Expected result:
+
+- `Successfully verified`
+- Signer: your name (SSL.com)
+- Trusted certificate chain
+- Timestamp present
+- 0 warnings, 0 errors
+
+---
+
+## Notes on tooling choice
+
+| Tool | Role |
+|------|------|
+| `jsign` | Signing. Most reliable with YubiKey + PKCS#11 on Windows. |
+| `signtool` | Verification, signature removal, and inspection. |
+
+This combination avoids Windows smart card / KSP edge cases and works consistently in local and CI environments.
 
 ---
 
