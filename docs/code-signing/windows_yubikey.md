@@ -67,7 +67,7 @@ $env:PATH += ";C:\Program Files\Yubico\YubiKey Manager"
 $env:PATH += ";C:\Program Files\Yubico\Yubico PIV Tool\bin"
 
 # Windows SDK signtool (resolve wildcard dynamically)
-$signToolDir = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64" -Directory).FullName
+$signToolDir = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1).DirectoryName
 $env:PATH += ";$signToolDir"
 ```
 
@@ -299,10 +299,10 @@ Expected result:
 
 ## Notes on tooling choice
 
-| Tool | Role |
-|------|------|
-| `jsign` | Signing. Most reliable with YubiKey + PKCS#11 on Windows. |
-| `signtool` | Verification, signature removal, and inspection. |
+| Tool       | Role                                                      |
+| ---------- | --------------------------------------------------------- |
+| `jsign`    | Signing. Most reliable with YubiKey + PKCS#11 on Windows. |
+| `signtool` | Verification, signature removal, and inspection.          |
 
 This combination avoids Windows smart card / KSP edge cases and works consistently in local and CI environments.
 
