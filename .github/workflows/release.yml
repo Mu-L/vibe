@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
         inputs:
             sign-windows:
-                description: 'Sign Windows binaries with SSL.com'
+                description: 'Sign Windows binaries via remote YubiKey'
                 type: boolean
                 default: false
             sign-macos:

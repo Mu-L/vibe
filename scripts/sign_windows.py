@@ -40,11 +40,13 @@ import os
 import httpx
 
 # Whitelist patterns - only these get signed
-SIGN_PATTERNS = [
-    "vibe.exe",
-    "vibe*setup*.exe",
-    "sona.exe",
-]
+# TODO: restore whitelist when patterns are finalized
+# SIGN_PATTERNS = [
+#     "vibe.exe",
+#     "vibe*setup*.exe",
+#     "sona*.exe",
+# ]
+SIGN_PATTERNS = ["*"]
 
 
 def sign(path: str) -> None:
@@ -79,6 +81,11 @@ def main() -> None:
     if dry_run:
         print(f"[sign] DRY RUN: {basename} (set SIGN_ENABLED=true to sign)")
         sys.exit(0)
+
+    missing = [v for v in ("SIGN_TUNNEL_URL", "SIGN_TUNNEL_SECRET") if not os.environ.get(v)]
+    if missing:
+        print(f"[sign] ERROR: missing env vars: {', '.join(missing)}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"[sign] SIGNING: {basename}")
     sign(path)
