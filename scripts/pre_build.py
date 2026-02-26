@@ -181,7 +181,8 @@ def download_diarize(script_root: Path, target_triple: str | None) -> None:
 
     asset_name = DIARIZE_ASSET_MAP.get(resolved_target)
     if not asset_name:
-        # Create a stub so Tauri can bundle externalBin without error
+        # Create a stub so Tauri can bundle externalBin without error.
+        # On macOS/Linux we compile a native Mach-O/ELF binary so codesign works.
         is_windows = resolved_target.endswith("windows-msvc")
         sidecar = f"sona-diarize-{resolved_target}" + (".exe" if is_windows else "")
         binaries_dir = script_root.parent / "desktop" / "src-tauri" / "binaries"
@@ -191,8 +192,18 @@ def download_diarize(script_root: Path, target_triple: str | None) -> None:
             if is_windows:
                 dest.write_text("@echo off\necho sona-diarize is not supported on this platform\nexit /b 1\n")
             else:
-                dest.write_text("#!/bin/sh\necho 'sona-diarize is not supported on this platform'\nexit 1\n")
-                dest.chmod(dest.stat().st_mode | 0o111)
+                # Compile a native stub binary so macOS codesign can sign it
+                c_src = binaries_dir / "_stub.c"
+                c_src.write_text(
+                    '#include <stdio.h>\n'
+                    'int main(void) {\n'
+                    '    fprintf(stderr, "sona-diarize is not supported on this platform\\n");\n'
+                    '    return 1;\n'
+                    '}\n'
+                )
+                import subprocess
+                subprocess.run(["cc", "-o", str(dest), str(c_src)], check=True)
+                c_src.unlink()
             print(f"Created sona-diarize stub at {dest} (not available for '{resolved_target}')")
         return
 
