@@ -66,6 +66,9 @@ export interface Preference {
 	gpuDevice: number | null
 	setGpuDevice: ModifyState<number | null>
 
+	recentLanguages: { code: string; ts: number }[]
+	setRecentLanguages: ModifyState<{ code: string; ts: number }[]>
+
 	analyticsEnabled: boolean
 	setAnalyticsEnabled: (value: boolean) => void
 }
@@ -158,6 +161,7 @@ export function PreferenceProvider({ children }: { children: ReactNode }) {
 		skipIfExists: true,
 	})
 
+	const [recentLanguages, setRecentLanguages] = useLocalStorage<{ code: string; ts: number }[]>('prefs_recent_languages', [])
 	const [diarizeEnabled, setDiarizeEnabled] = useLocalStorage<boolean>('prefs_diarize_enabled', false)
 	const [gpuDevice, setGpuDevice] = useLocalStorage<number | null>('prefs_gpu_device', null)
 
@@ -272,6 +276,8 @@ export function PreferenceProvider({ children }: { children: ReactNode }) {
 		setShouldCheckYtDlpVersion,
 		advancedTranscribeOptions,
 		setAdvancedTranscribeOptions,
+		recentLanguages,
+		setRecentLanguages,
 		diarizeEnabled,
 		setDiarizeEnabled,
 		gpuDevice,
