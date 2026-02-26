@@ -87,7 +87,7 @@ export default function Home() {
 								<p className="text-center text-sm text-muted-foreground">{t('common.no-model-selected')}</p>
 							)}
 
-							<AudioVisualizer isRecording={vm.isRecording} inputDevice={vm.inputDevice} />
+							{vm.inputDevice && <AudioVisualizer isRecording={vm.isRecording} inputDevice={vm.inputDevice} />}
 
 							<DictationDialog />
 

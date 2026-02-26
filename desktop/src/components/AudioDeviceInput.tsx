@@ -19,7 +19,11 @@ export default function AudioDeviceInput({ type, devices, device, setDevice }: A
 	return (
 		<div className="space-y-2 w-full">
 			<Label>{t(type === 'input' ? 'common.microphone' : 'common.speakers')}</Label>
-			<Select value={device?.id} onValueChange={(value) => {
+			<Select value={device?.id ?? 'none'} onValueChange={(value) => {
+				if (value === 'none') {
+					setDevice(null)
+					return
+				}
 				const next = filtered.find((d) => d.id === value)
 				setDevice(next ?? null)
 			}}>
@@ -27,6 +31,7 @@ export default function AudioDeviceInput({ type, devices, device, setDevice }: A
 					<SelectValue placeholder={t('common.no-record')} />
 				</SelectTrigger>
 				<SelectContent>
+					<SelectItem value="none">{t('common.no-record')}</SelectItem>
 					{filtered.map(({ id, name }) => (
 						<SelectItem key={id} value={id}>
 							{name}
