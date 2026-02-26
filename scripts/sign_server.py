@@ -48,6 +48,12 @@ PIV_PIN = os.environ["PIV_PIN"]
 app = Flask(__name__)
 
 
+@app.route("/")
+def index():
+    print(f"[INFO] health check from {request.remote_addr}")
+    return jsonify({"status": "ok"})
+
+
 @app.route("/sign", methods=["POST"])
 def sign():
     if request.headers.get("X-Tunnel-Secret") != SECRET:
