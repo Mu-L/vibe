@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
+import useUrlActions from '~/lib/useUrlActions'
 import Footer from './Footer'
 import KofiDialog from './KofiDialog'
 import Nav from './Nav'
@@ -18,6 +19,11 @@ export default function Layout() {
 		document.documentElement.setAttribute('dir', direction)
 		document.body.setAttribute('dir', direction)
 	}, [direction])
+
+	useUrlActions({
+		'support-vibe': onOpenKofi,
+		'open-privacy-policy': onOpenPrivacyPolicy,
+	})
 
 	return (
 		<div dir={direction}>

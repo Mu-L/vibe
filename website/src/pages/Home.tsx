@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOutletContext } from 'react-router-dom'
 import Cta from '~/components/Cta'
@@ -11,15 +10,6 @@ interface LayoutContext {
 export default function Home() {
 	const { t } = useTranslation()
 	const { onOpenKofi } = useOutletContext<LayoutContext>()
-
-	useEffect(() => {
-		const urlParams = new URLSearchParams(window.location.search)
-		const action = urlParams.get('action')
-
-		if (action === 'support-vibe') {
-			onOpenKofi()
-		}
-	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<>
