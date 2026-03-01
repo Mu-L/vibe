@@ -1,0 +1,4 @@
+interface:
+  display_name: "Aptabase Analytics Report"
+  short_description: "Export and analyze Vibe Aptabase telemetry"
+  default_prompt: "Use $aptabase-analytics-report to export recent Vibe analytics and summarize failures by version, user, and OS."
