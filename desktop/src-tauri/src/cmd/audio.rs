@@ -59,7 +59,7 @@ unsafe impl Sync for StreamHandle {}
 
 #[tauri::command]
 /// Record audio from the given devices, store to wav, merge with ffmpeg, and return path
-pub async fn start_record(app_handle: AppHandle, devices: Vec<AudioDevice>, store_in_documents: bool) -> Result<()> {
+pub async fn start_record(app_handle: AppHandle, devices: Vec<AudioDevice>, store_in_documents: bool, custom_path: Option<String>) -> Result<()> {
     let host = cpal::default_host();
 
     let mut wav_paths: Vec<(PathBuf, u32)> = Vec::new();
@@ -185,14 +185,39 @@ pub async fn start_record(app_handle: AppHandle, devices: Vec<AudioDevice>, stor
 
         if store_in_documents {
             if let Some(file_name) = normalized.file_name() {
-                let documents_path = app_handle_clone.path().document_dir().map_err(|e| eyre!("{e:?}")).log_error();
-                if let Some(documents_path) = documents_path {
-                    let target_path = documents_path.join(file_name);
-                    if std::fs::rename(&normalized, &target_path).context("Failed to move file to documents directory").map_err(|e| eyre!("{e:?}")).is_err() {
-                        // if it's different filesystem
-                        std::fs::copy(&normalized, &target_path).context("Failed to copy file to documents directory").map_err(|e| eyre!("{e:?}")).log_error();
+                let save_dir = if let Some(ref cp) = custom_path {
+                    Some(PathBuf::from(cp))
+                } else {
+                    app_handle_clone.path().document_dir().map(|d| d.join(crate::config::DOCUMENTS_SUBFOLDER)).map_err(|e| eyre!("{e:?}")).log_error()
+                };
+                if let Some(save_dir) = save_dir {
+                    let target_path = save_dir.join(file_name);
+                    if std::fs::create_dir_all(&save_dir)
+                        .context("Failed to create recording directory")
+                        .map_err(|e| eyre!("{e:?}"))
+                        .is_ok()
+                    {
+                        let moved = std::fs::rename(&normalized, &target_path)
+                            .context("Failed to move file to directory")
+                            .map_err(|e| eyre!("{e:?}"))
+                            .is_ok();
+                        let copied = if moved {
+                            false
+                        } else {
+                            // Cross-filesystem moves can fail; copy as fallback.
+                            std::fs::copy(&normalized, &target_path)
+                                .context("Failed to copy file to directory")
+                                .map_err(|e| eyre!("{e:?}"))
+                                .is_ok()
+                        };
+
+                        if moved || copied {
+                            if copied {
+                                std::fs::remove_file(&normalized).map_err(|e| eyre!("{e:?}")).log_error();
+                            }
+                            normalized = target_path;
+                        }
                     }
-                    normalized = target_path;
                 }
             } else {
                 tracing::error!("Failed to retrieve file name from destination path");

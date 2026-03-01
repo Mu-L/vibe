@@ -433,7 +433,7 @@ export function viewModel() {
 			devices.push(outputDevice)
 		}
 		try {
-			await invoke('start_record', { devices, storeInDocuments: preference.storeRecordInDocuments })
+			await invoke('start_record', { devices, storeInDocuments: preference.storeRecordInDocuments, customPath: preference.customRecordingPath })
 		} catch (error) {
 			stopKeepAwake()
 			setIsRecording(false)
@@ -583,7 +583,7 @@ export function viewModel() {
 			setYtDlpProgress(0)
 			setDownloadingAudio(true)
 			try {
-				const outPath = await ytDlp.downloadAudio(audioUrl, preference.storeRecordInDocuments)
+				const outPath = await ytDlp.downloadAudio(audioUrl, preference.storeRecordInDocuments, preference.customRecordingPath)
 				if (cancelYtDlpRef.current) {
 					cancelYtDlpRef.current = false
 					return

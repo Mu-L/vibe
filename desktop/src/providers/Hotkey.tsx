@@ -98,6 +98,7 @@ export function HotkeyProvider({ children }: { children: ReactNode }) {
 			await invoke('start_record', {
 				devices: [defaultInput],
 				storeInDocuments: false,
+				customPath: null,
 			})
 		} catch (error) {
 			console.error('Hotkey start_record error:', error)

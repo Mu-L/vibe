@@ -42,6 +42,8 @@ export interface Preference {
 	setTheme: ModifyState<'light' | 'dark'>
 	storeRecordInDocuments: boolean
 	setStoreRecordInDocuments: ModifyState<boolean>
+	customRecordingPath: string | null
+	setCustomRecordingPath: ModifyState<string | null>
 	setLanguageDirections: () => void
 	homeTabIndex: number
 	setHomeTabIndex: ModifyState<number>
@@ -152,6 +154,7 @@ export function PreferenceProvider({ children }: { children: ReactNode }) {
 	const [modelOptions, setModelOptions] = useLocalStorage<ModelOptions>('prefs_modal_args', defaultOptions.modelOptions)
 	const [ffmpegOptions, setFfmpegOptions] = useLocalStorage<FfmpegOptions>('prefs_ffmpeg_options', defaultOptions.ffmpegOptions)
 	const [storeRecordInDocuments, setStoreRecordInDocuments] = useLocalStorage('prefs_store_record_in_documents', defaultOptions.storeRecordInDocuments)
+	const [customRecordingPath, setCustomRecordingPath] = useLocalStorage<string | null>('prefs_custom_recording_path', null)
 	const [llmConfig, setLlmConfig] = useLocalStorage<LlmConfig>('prefs_llm_config', defaultOptions.llmConfig)
 	const [ytDlpVersion, setYtDlpVersion] = useLocalStorage<string | null>('prefs_ytdlp_version', null)
 	const [shouldCheckYtDlpVersion, setShouldCheckYtDlpVersion] = useLocalStorage<boolean>('prefs_should_check_ytdlp_version', true)
@@ -228,6 +231,7 @@ export function PreferenceProvider({ children }: { children: ReactNode }) {
 		setModelOptions(defaultOptions.modelOptions)
 		setFfmpegOptions(defaultOptions.ffmpegOptions)
 		setStoreRecordInDocuments(defaultOptions.storeRecordInDocuments)
+		setCustomRecordingPath(null)
 		setLlmConfig(defaultOptions.llmConfig)
 		message(i18n.t('common.success-action'))
 	}
@@ -248,6 +252,8 @@ export function PreferenceProvider({ children }: { children: ReactNode }) {
 		setModelOptions,
 		storeRecordInDocuments,
 		setStoreRecordInDocuments,
+		customRecordingPath,
+		setCustomRecordingPath,
 		textFormatTranscript,
 		setTextFormatTranscript,
 		textFormatSummary,

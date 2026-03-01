@@ -107,6 +107,7 @@ async fn main() -> Result<()> {
             cmd::get_x86_features,
             cmd::get_save_path,
             cmd::get_argv,
+            cmd::get_default_recording_path,
             cmd::audio::get_audio_devices,
             cmd::audio::start_record,
             cmd::get_models_folder,

@@ -27,8 +27,8 @@ export async function downloadYtDlp(version: string) {
 	await invoke('download_file', { url, path: binaryPath })
 }
 
-export async function downloadAudio(url: string, inDocuments?: boolean) {
-	const outPath = await invoke<string>('get_temp_path', { ext: 'm4a', inDocuments })
+export async function downloadAudio(url: string, inDocuments?: boolean, customPath?: string | null) {
+	const outPath = await invoke<string>('get_temp_path', { ext: 'm4a', inDocuments, customPath: customPath ?? null })
 	await invoke<string>('download_audio', { url, outPath })
 	return outPath
 }

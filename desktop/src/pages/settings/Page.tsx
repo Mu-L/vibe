@@ -116,7 +116,26 @@ export default function SettingsPage({ setVisible }: SettingsPageProps) {
 							</div>
 						</SectionCard>
 					</div>
-
+					<div className="space-y-2">
+						<SectionTitle title={t('common.recording-save-path')} tip={t('common.recording-save-path-info')} />
+						<SectionCard>
+							<div className="flex items-center justify-between gap-2">
+								<p className="min-w-0 truncate text-sm text-muted-foreground" title={vm.preference.customRecordingPath ?? vm.defaultRecordingPath}>
+									{vm.preference.customRecordingPath ?? vm.defaultRecordingPath}
+								</p>
+								<div className="flex shrink-0 items-center gap-2">
+									{vm.preference.customRecordingPath && (
+										<Button variant="ghost" size="sm" onMouseDown={vm.resetRecordingPath}>
+											{t('common.reset-to-default')}
+										</Button>
+									)}
+									<Button variant="outline" size="sm" onMouseDown={vm.changeRecordingPath}>
+										{t('common.change-recording-path')}
+									</Button>
+								</div>
+							</div>
+						</SectionCard>
+					</div>
 					<div className="space-y-2">
 						<SectionTitle title={t('common.customize')} tip={t('common.customize-info')} />
 						<SectionCard>

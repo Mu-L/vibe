@@ -17,7 +17,7 @@ use tauri::{
     window::{ProgressBarState, ProgressBarStatus},
     Manager,
 };
-use tauri::{Emitter, Listener, State};
+use tauri::{AppHandle, Emitter, Listener, State};
 use tauri_plugin_store::StoreExt;
 use tokio::sync::Mutex;
 pub mod audio;
@@ -454,6 +454,14 @@ pub fn get_save_path(src_path: PathBuf, target_ext: &str) -> Result<Value> {
 #[tauri::command]
 pub fn get_argv() -> Vec<String> {
     std::env::args().collect()
+}
+
+#[tauri::command]
+pub fn get_default_recording_path(app_handle: AppHandle) -> Result<String> {
+    let path = app_handle.path().document_dir()
+        .map_err(|e| eyre::eyre!("{e:?}"))?
+        .join(crate::config::DOCUMENTS_SUBFOLDER);
+    Ok(path.to_string_lossy().to_string())
 }
 
 #[tauri::command]

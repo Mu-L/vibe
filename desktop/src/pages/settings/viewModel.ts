@@ -90,6 +90,7 @@ export function viewModel() {
 
 	const [models, setModels] = useState<NamedPath[]>([])
 	const [appVersion, setAppVersion] = useState('')
+	const [defaultRecordingPath, setDefaultRecordingPath] = useState<string>('')
 	const preference = usePreferenceProvider()
 	const { t } = useTranslation()
 	const listenersRef = useRef<UnlistenFn[]>([])
@@ -142,6 +143,17 @@ export function viewModel() {
 				preference.setModelPath(defaultModelPath as string)
 			}
 		}
+	}
+
+	async function changeRecordingPath() {
+		const path = await open({ directory: true, multiple: false })
+		if (path) {
+			preference.setCustomRecordingPath(path)
+		}
+	}
+
+	async function resetRecordingPath() {
+		preference.setCustomRecordingPath(null)
 	}
 
 	async function changeModelsFolder() {
@@ -211,6 +223,7 @@ export function viewModel() {
 		refreshApiServerStatus()
 		loadGpuDevices()
 		onWindowFocus()
+		invoke<string>('get_default_recording_path').then(setDefaultRecordingPath).catch(console.error)
 		return () => {
 			listenersRef.current.forEach((unlisten) => unlisten())
 		}
@@ -240,6 +253,9 @@ export function viewModel() {
 		reportIssue,
 		loadModels,
 		changeModelsFolder,
+		changeRecordingPath,
+		resetRecordingPath,
+		defaultRecordingPath,
 		gpuDevices,
 		isMacOS,
 	}

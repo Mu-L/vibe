@@ -3,6 +3,7 @@ use eyre::{bail, Context, ContextCompat, Result};
 use serde_json::Value;
 use std::{
     io::{BufRead, BufReader},
+    path::PathBuf,
     sync::atomic::{AtomicBool, Ordering},
 };
 use tauri::{AppHandle, Emitter, Listener, Manager};
@@ -53,9 +54,15 @@ pub async fn get_latest_ytdlp_version() -> Result<String> {
 }
 
 #[tauri::command]
-pub fn get_temp_path(app_handle: AppHandle, ext: String, in_documents: Option<bool>) -> String {
+pub fn get_temp_path(app_handle: AppHandle, ext: String, in_documents: Option<bool>, custom_path: Option<String>) -> String {
     let mut base_path = if in_documents.unwrap_or_default() {
-        app_handle.path().document_dir().unwrap_or(get_vibe_temp_folder())
+        let dir = if let Some(ref cp) = custom_path {
+            PathBuf::from(cp)
+        } else {
+            app_handle.path().document_dir().unwrap_or(get_vibe_temp_folder()).join(crate::config::DOCUMENTS_SUBFOLDER)
+        };
+        std::fs::create_dir_all(&dir).ok();
+        dir
     } else {
         get_vibe_temp_folder()
     };
