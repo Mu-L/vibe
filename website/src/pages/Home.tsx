@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOutletContext } from 'react-router-dom'
 import Cta from '~/components/Cta'
+import WallOfLove from '~/components/WallOfLove'
 
 interface LayoutContext {
 	onOpenKofi: () => void
@@ -34,6 +35,7 @@ export default function Home() {
 					src="/vibe/preview.png"
 				/>
 			</div>
+			<WallOfLove />
 		</>
 	)
 }

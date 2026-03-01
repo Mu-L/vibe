@@ -133,6 +133,24 @@
 	}
 }
 
+@keyframes marquee-up {
+	0% {
+		transform: translateY(0);
+	}
+	100% {
+		transform: translateY(-50%);
+	}
+}
+
+@layer utilities {
+	.animate-marquee-up {
+		animation: marquee-up linear infinite;
+	}
+	.pause {
+		animation-play-state: paused;
+	}
+}
+
 @layer components {
 	.markdown h1 {
 		@apply text-4xl font-bold mb-4;
