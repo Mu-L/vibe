@@ -107,11 +107,16 @@ export default function WallOfLove() {
 	const durations = [60, 80, 50]
 
 	return (
-		<section className="m-auto mt-20 hidden w-[95%] md:block lg:w-[1000px]">
+		<section className="m-auto mt-20 w-[95%] lg:w-[1000px]">
 			<h2 className="mb-8 text-center text-2xl font-bold lg:text-3xl">{t('loved-by-thousands')}</h2>
+			{/* Mobile: single column vertical marquee */}
+			<div dir="ltr" className="relative h-[450px] overflow-hidden md:hidden">
+				<MarqueeColumn supporters={supporters} duration={120} />
+			</div>
+			{/* Desktop: 3 columns */}
 			<div
 				dir="ltr"
-				className="relative overflow-hidden"
+				className="relative hidden overflow-hidden md:block"
 				style={{ maxHeight: '600px' }}
 			>
 				<div className="group grid h-[600px] grid-cols-3 gap-4 [&:hover_.animate-marquee-up]:pause">
