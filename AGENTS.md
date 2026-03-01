@@ -30,6 +30,10 @@ Example:
 uv run plans/<name>/<name>_001.py
 ```
 
+## Skills
+
+Custom skills are located in the `.skills/` folder.
+
 ## Execution Mindset
 
 Think in agent mode, not human mode.

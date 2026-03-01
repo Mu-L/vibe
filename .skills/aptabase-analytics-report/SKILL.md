@@ -9,6 +9,32 @@ description: Export and analyze Vibe Aptabase analytics for recent time windows 
 
 Use this skill to export Aptabase telemetry from the Vibe repo, trim day-granularity exports to an exact time window, and produce a reliability report from the CSV with inline `uv` + pandas commands.
 
+## Prerequisites
+
+The export script requires a `.env` file at the repo root with these variables:
+
+- `BASE_URL` – Aptabase server URL
+- `AUTH_SECRET` – JWT signing secret
+- `AUTH_NAME` – account name
+- `AUTH_EMAIL` – account email
+- `APP_KEY` – app key (e.g. `A-SH-0194598703`)
+- `APTABASE_REGION` – optional, defaults to `"SH"`
+
+## CSV Schema
+
+The exported CSV contains these columns:
+
+| Column | Description |
+|---|---|
+| `timestamp` | UTC timestamp of the event |
+| `event_name` | Event identifier (see event lifecycle below) |
+| `user_id` | Anonymous user identifier |
+| `app_version` | Semantic version of the app |
+| `os_name` | OS family (e.g. `Windows`, `macOS`, `Linux Mint`) |
+| `os_version` | OS version string |
+| `string_props` | JSON object with event metadata. Failure events contain an `error_message` key with the full error string. |
+| `numeric_props` | JSON object with numeric event metadata |
+
 ## Workflow
 
 ### 1. Confirm the event set
@@ -18,14 +44,12 @@ Read these files before interpreting the export:
 - `desktop/src-tauri/src/analytics.rs`
 - `desktop/src/lib/analytics.ts`
 
-Treat those files as the source of truth for the current event set. Identify:
+Treat those files as the source of truth for the current event set. Events follow these patterns:
 
-- lifecycle start events
-- lifecycle success events
-- lifecycle failure events
-- startup or infrastructure failure events
+- **Lifecycle events:** `<action>_started` → `<action>_succeeded` / `<action>_failed`
+- **Infrastructure failures:** `<component>_<failure_type>` (e.g. spawn failures)
 
-Do not assume specific event names are stable across revisions.
+Identify which events are starts, successes, and failures. Do not assume specific event names are stable across revisions.
 
 ### 2. Export enough UTC days for the requested window
 
@@ -45,22 +69,20 @@ PY
 Then export:
 
 ```bash
-env UV_CACHE_DIR="$PWD/.uv-cache" uv run scripts/export_analytics.py \
+uv run scripts/export_analytics.py \
   --start-date YYYY-MM-DD \
   --end-date YYYY-MM-DD \
   --output scripts/analytics_last_48h_raw.csv
 ```
 
-If `uv` cannot run inside the sandbox, move the cache into the workspace (`UV_CACHE_DIR`) and, if needed, request to run outside the sandbox so the script can authenticate and fetch data.
-
 ### 3. Analyze with inline pandas every time
 
 Do not rely on a bundled analysis script. Use ad hoc inline Python with `uv` so the analysis stays easy to adapt as the repo changes.
 
-Start with a minimal trim and version filter:
+Start with a minimal trim. Use all app versions unless the user specifies otherwise. To restrict, filter to the N most recent versions by event count rather than hardcoding version strings.
 
 ```bash
-env UV_CACHE_DIR="$PWD/.uv-cache" uv run --with pandas==3.0.0 python - <<'PY'
+uv run --with pandas==3.0.0 python - <<'PY'
 from datetime import timedelta
 import pandas as pd
 
@@ -70,10 +92,9 @@ df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
 end_time = df["timestamp"].max()
 cutoff = end_time - timedelta(hours=48)
 filtered = df[df["timestamp"] >= cutoff].copy()
-filtered = filtered[filtered["app_version"].astype(str).isin({"3.0.14", "3.0.15"})]
 filtered = filtered.sort_values("timestamp", ascending=False).reset_index(drop=True)
 filtered["timestamp"] = filtered["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
-filtered.to_csv("scripts/analytics_last_48h_versions.csv", index=False)
+filtered.to_csv("scripts/analytics_last_48h.csv", index=False)
 
 print(f"rows={len(filtered)}")
 print(f"time_min={filtered['timestamp'].min()}")
@@ -121,6 +142,21 @@ Keep the final report compact but complete:
 - Give affected-user counts, happy-user counts, and user share percentages
 - Break down failures by OS family, OS name, app version, and top issue buckets
 - End with prioritized fix suggestions tied to likely code paths
+
+## Done Checklist
+
+Before finishing, verify your report includes all of these:
+
+- [ ] Exact time range and any filters applied
+- [ ] Total row count and active user count
+- [ ] Event counts by event name
+- [ ] Raw error rate and workflow failure rate (failures / starts)
+- [ ] Affected user count and percentage
+- [ ] Happy user count (success, no failures)
+- [ ] Failure breakdown by OS
+- [ ] Failure breakdown by app version
+- [ ] Top 5+ error buckets with counts (parsed from `string_props.error_message`)
+- [ ] Fix suggestions tied to code paths (for deep analysis)
 
 ## Resources
 
