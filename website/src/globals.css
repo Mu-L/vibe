@@ -151,12 +151,33 @@
 	}
 }
 
+@keyframes pulse-glow {
+	0%, 100% {
+		box-shadow: 0 0 8px hsl(205 74% 43% / 0.4);
+	}
+	50% {
+		box-shadow: 0 0 16px hsl(205 74% 43% / 0.6);
+	}
+}
+
+.dark @keyframes pulse-glow {
+	0%, 100% {
+		box-shadow: 0 0 8px hsl(208 94% 66% / 0.3);
+	}
+	50% {
+		box-shadow: 0 0 16px hsl(208 94% 66% / 0.5);
+	}
+}
+
 @layer utilities {
 	.animate-marquee-up {
 		animation: marquee-up linear infinite;
 	}
 	.animate-marquee-left {
 		animation: marquee-left linear infinite;
+	}
+	.animate-pulse-glow {
+		animation: pulse-glow 2s ease-in-out 3;
 	}
 	.pause {
 		animation-play-state: paused;

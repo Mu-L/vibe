@@ -117,16 +117,16 @@ export default function Cta({ onOpenKofi }: CtaProps) {
 
 			{currentPlatform === 'macos' && ctaClicked && (
 				<div className="mt-3 flex gap-2">
-					<Button variant="outline" size="sm" asChild>
+					<Button variant="outline" size="sm" className="animate-pulse-glow" asChild>
+						<a href={macSiliconAsset?.url} onClick={() => setPostDownloadOpen(true)}>
+							<Mac className="size-4" />
+							{t('apple-silicon')}
+						</a>
+					</Button>
+					<Button variant="outline" size="sm" className="animate-pulse-glow" asChild>
 						<a href={macIntelAsset?.url} onClick={() => setPostDownloadOpen(true)}>
 							<Chip />
 							{t('intel')}
-						</a>
-					</Button>
-					<Button variant="outline" size="sm" asChild>
-						<a href={macSiliconAsset?.url} onClick={() => setPostDownloadOpen(true)}>
-							<Chip />
-							{t('apple-silicon')}
 						</a>
 					</Button>
 				</div>
