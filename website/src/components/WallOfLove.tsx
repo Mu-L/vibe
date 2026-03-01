@@ -58,9 +58,18 @@ function SupporterCard({ supporter }: { supporter: Supporter }) {
 	)
 }
 
-function MarqueeColumn({ supporters, duration }: { supporters: Supporter[]; duration: number }) {
+function CompactCard({ supporter }: { supporter: Supporter }) {
 	return (
-		<div className="relative h-full overflow-hidden">
+		<div className="rounded-lg border border-border bg-card/60 px-3 py-2">
+			<p className="text-xs text-muted-foreground line-clamp-2">{supporter.message}</p>
+			<p className="mt-1 text-xs font-medium">— {supporter.name}</p>
+		</div>
+	)
+}
+
+function MarqueeColumn({ supporters, duration, className }: { supporters: Supporter[]; duration: number; className?: string }) {
+	return (
+		<div className={`relative h-full overflow-hidden ${className ?? ''}`}>
 			<div
 				className="animate-marquee-up flex flex-col gap-4"
 				style={{ animationDuration: `${duration}s` }}
@@ -100,21 +109,20 @@ export default function WallOfLove() {
 		]
 	}, [supporters])
 
+
 	if (supporters.length === 0) return null
 
 	const durations = [60, 80, 50]
 
 	return (
-		<section className="m-auto mt-20 w-[95%] lg:w-[1000px]">
+		<section className="m-auto mt-20 hidden w-[95%] md:block lg:w-[1000px]">
 			<h2 className="mb-8 text-center text-2xl font-bold lg:text-3xl">{t('loved-by-thousands')}</h2>
 			<div
 				dir="ltr"
 				className="relative overflow-hidden"
 				style={{ maxHeight: '600px' }}
 			>
-				<div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-background to-transparent" />
-				<div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-background to-transparent" />
-				<div className="group grid h-[600px] grid-cols-1 gap-4 md:grid-cols-3 [&:hover_.animate-marquee-up]:pause">
+				<div className="group grid h-[600px] grid-cols-3 gap-4 [&:hover_.animate-marquee-up]:pause">
 					{columns.map((col, i) => (
 						<MarqueeColumn key={i} supporters={col} duration={durations[i]} />
 					))}
