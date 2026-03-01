@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Supporter {
 	id: string
@@ -76,6 +77,7 @@ function MarqueeColumn({ supporters, duration }: { supporters: Supporter[]; dura
 }
 
 export default function WallOfLove() {
+	const { t } = useTranslation()
 	const [supporters, setSupporters] = useState<Supporter[]>([])
 
 	useEffect(() => {
@@ -104,7 +106,7 @@ export default function WallOfLove() {
 
 	return (
 		<section className="m-auto mt-20 w-[95%] lg:w-[1000px]">
-			<h2 className="mb-8 text-center text-2xl font-bold lg:text-3xl">Loved by Thousands</h2>
+			<h2 className="mb-8 text-center text-2xl font-bold lg:text-3xl">{t('loved-by-thousands')}</h2>
 			<div
 				dir="ltr"
 				className="relative overflow-hidden"

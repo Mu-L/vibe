@@ -41,3 +41,5 @@ sona/
 whisper.cpp/
 aptabase-python/
 tauri-plugin-aptabase/
+**/project.inlang/cache/
+**/project.inlang/project_id
