@@ -10,6 +10,7 @@ import Mac from '~/icons/Mac'
 import Windows from '~/icons/Windows'
 import latestRelease from '~/lib/latest_release.json'
 import linuxInstallOptions from '~/lib/linux_install_options.json'
+import CopyButton from './CopyButton'
 import PostDownload from './PostDownload'
 import SupportButton from './SupportButton'
 
@@ -166,8 +167,9 @@ export default function Cta({ onOpenKofi }: CtaProps) {
 						{linuxInstallOptions.map((option) => (
 							<div key={option.title} className="mt-5 first:mt-3" dir="ltr">
 								<div className="mb-2 text-3xl text-primary opacity-80">{option.title}</div>
-								<div className="w-full overflow-x-auto rounded-sm bg-[#2b2b2b]">
-									<code className="block whitespace-nowrap p-2 text-sm">{option.command.replace('{tag}', latestRelease.version)}</code>
+								<div className="flex w-full items-center gap-1 overflow-x-auto rounded-sm bg-[#2b2b2b] pr-1">
+									<code className="block flex-1 whitespace-nowrap p-2 text-sm">{option.command.replace('{tag}', latestRelease.version)}</code>
+									<CopyButton text={option.command.replace('{tag}', latestRelease.version)} />
 								</div>
 							</div>
 						))}
