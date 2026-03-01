@@ -58,14 +58,6 @@ function SupporterCard({ supporter }: { supporter: Supporter }) {
 	)
 }
 
-function CompactCard({ supporter }: { supporter: Supporter }) {
-	return (
-		<div className="rounded-lg border border-border bg-card/60 px-3 py-2">
-			<p className="text-xs text-muted-foreground line-clamp-2">{supporter.message}</p>
-			<p className="mt-1 text-xs font-medium">— {supporter.name}</p>
-		</div>
-	)
-}
 
 function MarqueeColumn({ supporters, duration, className }: { supporters: Supporter[]; duration: number; className?: string }) {
 	return (
